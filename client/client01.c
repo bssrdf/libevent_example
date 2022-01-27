@@ -55,7 +55,7 @@ void read_callback(struct bufferevent *bev, void *ctx) {
 void event_callback(struct bufferevent *bev, short events, void *ctx) {
 	if (events & BEV_EVENT_CONNECTED) {
 		printf("connected");
-	} else if (events & BEV_EVENT_TIMEOUT|BEV_EVENT_READING){		
+	} else if (events & (BEV_EVENT_TIMEOUT|BEV_EVENT_READING)){		
 		bufferevent_write(bev, "hello world", 12);
 		bufferevent_enable(bev, EV_READ|EV_WRITE);
 	} else if (events & BEV_EVENT_EOF) {
