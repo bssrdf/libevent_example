@@ -2,6 +2,7 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 #include <event2/util.h>
+#include <arpa/inet.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -14,7 +15,8 @@ int main() {
 	struct event_base *base;
 	struct sockaddr_in sin;
 	struct bufferevent *bev;
-	
+	struct timeval delay = {3, 0};
+
 	base = event_base_new();
 	if (!base) {
 		fprintf(stderr, "Could not initialize libevent!\n");
@@ -37,6 +39,7 @@ int main() {
 		return -1;
 	}
 	bufferevent_enable(bev, EV_READ|EV_WRITE);
+	bufferevent_set_timeouts(bev, &delay, NULL);
 	event_base_dispatch(base);
 
 	return 0;
@@ -46,12 +49,15 @@ void read_callback(struct bufferevent *bev, void *ctx) {
 	struct evbuffer *input = bufferevent_get_input(bev);
 	int size = evbuffer_get_length(input);
 	evbuffer_write(input, 1);
-	bufferevent_write(bev, "hello world", 12);
+	//bufferevent_write(bev, "hello world", 12);
 }
 
 void event_callback(struct bufferevent *bev, short events, void *ctx) {
 	if (events & BEV_EVENT_CONNECTED) {
 		printf("connected");
+	} else if (events & BEV_EVENT_TIMEOUT|BEV_EVENT_READING){		
+		bufferevent_write(bev, "hello world", 12);
+		bufferevent_enable(bev, EV_READ|EV_WRITE);
 	} else if (events & BEV_EVENT_EOF) {
 		printf("Connection closed.\n");
 	} else if (events & BEV_EVENT_ERROR) {

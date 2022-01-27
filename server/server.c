@@ -69,6 +69,8 @@ void listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
 {
 	struct event_base *base = user_data;
 	struct bufferevent *bev;
+
+	struct timeval delay = {2, 0};
 	
 	bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
 	if (!bev) {
@@ -78,7 +80,7 @@ void listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
 	}
 	bufferevent_setcb(bev, conn_readcb, NULL, conn_eventcb, NULL);
 	bufferevent_enable(bev, EV_WRITE|EV_READ);
-
+	//bufferevent_set_timeouts(bev, &delay, NULL);
 	bufferevent_write(bev, MESSAGE, strlen(MESSAGE));
 }
 
@@ -99,6 +101,9 @@ void conn_eventcb(struct bufferevent *bev, short events, void *user_data)
 {
 	if (events & BEV_EVENT_EOF) {
 		printf("Connection closed.\n");
+	//} else if (events & BEV_EVENT_TIMEOUT|BEV_EVENT_READING){
+    //   bufferevent_enable(bev, EV_READ); 
+	//   return;	
 	} else if (events & BEV_EVENT_ERROR) {
 		printf("Got an error on the connection: %s\n",
 				strerror(errno));
